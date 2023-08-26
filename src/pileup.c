@@ -81,7 +81,7 @@ bool is_num(char *string) {
   }
 }
 
-Token Get_Token(char *string, int line_number) {
+Token Get_Token(PileupState *state, char *string, int line_number) {
   // TODO might destroy newline in string literal
   removeChar(string, '\n');
   bool is_number = is_num(string);
@@ -98,7 +98,8 @@ Token Get_Token(char *string, int line_number) {
   } else if (strcmp(string, "dumps") == 0) {
     token.type = DUMP_STACK;
   } else {
-    token.type = TOKEN_COUNT;
+    printf("%s:%d: ERROR: word '%s' not recognized!\n", state->filename, line_number, string);
+    exit(-1);
   }
   token.line_number = line_number;
   return token;
@@ -178,7 +179,7 @@ int main(int argc, char *argv[]) {
   Token cur_token;
   while (fgets(line, 100, in_file) != NULL) {
     token = strtok_r(line, delim, &next_token);
-    cur_token = Get_Token(token, line_no);
+    cur_token = Get_Token(&state, token, line_no);
     Add_Token(&state, cur_token);
     Run_Token(&state);
     while (token) {
@@ -186,7 +187,7 @@ int main(int argc, char *argv[]) {
       if (token == NULL) {
         break;
       }
-      cur_token = Get_Token(token, line_no);
+      cur_token = Get_Token(&state, token, line_no);
       Add_Token(&state, cur_token);
       Run_Token(&state);
     }
