@@ -10,8 +10,6 @@
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
 
-//typedef enum { PUSH_INT, PLUS, PRINT, LINE_END, TOKEN_COUNT } TokenType;
-
 #define FOREACH_TOKEN(TOKEN) \
         TOKEN(PUSH_INT)   \
         TOKEN(PLUS)  \
@@ -84,7 +82,6 @@ bool is_num(char *string){
 }
 
 Token Get_Token(char *string, int line_number){
-    LOG(INFO, "Getting token");
     // TODO might destroy newline in string literal
     removeChar(string,'\n');
     bool is_number = is_num(string);
@@ -100,9 +97,6 @@ Token Get_Token(char *string, int line_number){
         token.type = PRINT;
     }
     else{
-      char logstring[100];
-      sprintf(logstring, "String in TOKEN_COUNT is %s\n",string);
-      LOG(INFO, logstring);
       token.type = TOKEN_COUNT;
     }
     token.line_number = line_number;
@@ -171,13 +165,11 @@ int main(int argc, char *argv[]) {
   const char *delim = " ";
   Token cur_token;
   while (fgets(line, 100, in_file) != NULL) {
-    printf("The line %d is: %s", line_no, line);
     token = strtok_r(line, delim, &next_token);
     cur_token = Get_Token(token,line_no); 
     Add_Token(&state, cur_token);
     Run_Token(&state);
     while (token) {
-      puts(token);
       token = strtok_r(NULL, delim, &next_token);
       if(token == NULL){
           break;
