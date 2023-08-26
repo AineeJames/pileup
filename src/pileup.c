@@ -34,10 +34,19 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
 
+  uint8_t strmax;
   char line[100];
   int line_no = 0;
+  char *next_token;
+  char *token;
+  const char *delim = " ";
   while (fgets(line, 100, in_file) != NULL) {
     printf("The line %d is: %s", line_no, line);
+    token = strtok_r(line, delim, &next_token);
+    while(token) {
+        puts(token);
+        token = strtok_r(NULL, delim, &next_token);
+    }
     line_no++;
   }
 
