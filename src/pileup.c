@@ -127,8 +127,20 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
   return token;
 }
 
+void Print_All_Tokens(PileupState state) {
+  for (int i = 0; i < state.token_index; i++) {
+    printf("%s:%d %s token_index = %d: ", state.filename,
+           state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
+    if (state.tokens[i].type == PUSH_INT)
+      printf("%d\n", (int)state.tokens[i].value.i);
+    else
+      printf("\n");
+  }
+}
+
 int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
   printf("creating loop\n");
+  Print_All_Tokens(*state);
   // check if there is a loop that matches
   for (int i = 0; i < state->loop_index; i++) {
     // TODO  this will exploded if curlys on same line
@@ -147,8 +159,9 @@ int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
 
 void Add_Token(PileupState *state, Token token) {
   state->tokens[state->token_index] = token;
+  state->token_index++;
   if (token.type == CURLY_END) {
-    int loop_end = state->token_index;
+    int loop_end = state->token_index - 1;
     for (int i = loop_end; i > 0; i--) {
       if (state->tokens[i].type == CURLY_START){
         int8_t err = Add_Loop(state, i, loop_end);
@@ -158,19 +171,9 @@ void Add_Token(PileupState *state, Token token) {
       }
     }
   }
-  state->token_index++;
 }
 
-void Print_All_Tokens(PileupState state) {
-  for (int i = 0; i < state.token_index; i++) {
-    printf("%s:%d %s token_index = %d: ", state.filename,
-           state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
-    if (state.tokens[i].type == PUSH_INT)
-      printf("%d\n", (int)state.tokens[i].value.i);
-    else
-      printf("\n");
-  }
-}
+
 
 void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
@@ -179,8 +182,18 @@ void Print_Stack(PileupState *state) {
   printf("\n");
 }
 
-void Run_Token(PileupState *state) {
+Loop *Find_Loop(PileupState *state,int end_index){
+  for (int i = 0; i < state->loop_index; i++) {
+    // TODO  this will exploded if curlys on same line
+    if (state->loops[i].end_index == end_index) {
+      // found a loop that already exists
+      return &state->loops[i];
+    }
+  }
+  return NULL;
+}
 
+void Run_Token(PileupState *state) {
   Token cur_token = state->tokens[state->token_index - 1];
   if (cur_token.type == PUSH_INT) {
     state->stack[state->stack_index] = cur_token.value.i;
@@ -212,6 +225,10 @@ void Run_Token(PileupState *state) {
     printf("%d\n", top_stack_int);
   } else if (cur_token.type == DUMP_STACK) {
     Print_Stack(state);
+  } else if (cur_token.type == CURLY_END) {
+    Loop* loop = Find_Loop(state,state->stack_index);
+    if(loop != NULL){ state->token_index = loop->start_index;}
+    Run_Token(state);
   }
 }
 
