@@ -13,6 +13,7 @@
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
   TOKEN(PLUS)                                                                  \
+  TOKEN(MINUS)                                                                 \
   TOKEN(PRINT)                                                                 \
   TOKEN(LINE_END)                                                              \
   TOKEN(TOKEN_COUNT)
@@ -79,27 +80,25 @@ bool is_num(char *string) {
   }
 }
 
-Token Get_Token(char *string, int line_number){
-    // TODO might destroy newline in string literal
-    removeChar(string,'\n');
-    bool is_number = is_num(string);
-    Token token;
-    if (is_number){
-      token.type = PUSH_INT;  
-      token.value.i = atoi(string);
-    }
-    else if(strcmp(string,"+") == 0){
-        token.type = PLUS;
-    }
-    else if(strcmp(string,"print") == 0){
-        token.type = PRINT;
-    }
-    else{
-      token.type = TOKEN_COUNT;
-    }
-    token.line_number = line_number;
-    return token;
-
+Token Get_Token(char *string, int line_number) {
+  // TODO might destroy newline in string literal
+  removeChar(string, '\n');
+  bool is_number = is_num(string);
+  Token token;
+  if (is_number) {
+    token.type = PUSH_INT;
+    token.value.i = atoi(string);
+  } else if (strcmp(string, "+") == 0) {
+    token.type = PLUS;
+  } else if (strcmp(string, "-") == 0) {
+    token.type = MINUS;
+  } else if (strcmp(string, "print") == 0) {
+    token.type = PRINT;
+  } else {
+    token.type = TOKEN_COUNT;
+  }
+  token.line_number = line_number;
+  return token;
 }
 
 void Add_Token(PileupState *state, Token token) {
@@ -137,6 +136,14 @@ void Run_Token(PileupState *state) {
     state->stack_index--;
     int secondnum = state->stack[state->stack_index];
     state->stack[state->stack_index] = firstnum + secondnum;
+    state->stack_index++;
+  } else if (cur_token.type == MINUS) {
+    // pop off top two nums
+    state->stack_index--;
+    int firstnum = state->stack[state->stack_index];
+    state->stack_index--;
+    int secondnum = state->stack[state->stack_index];
+    state->stack[state->stack_index] = secondnum - firstnum;
     state->stack_index++;
   } else if (cur_token.type == PRINT) {
     state->stack_index--;
