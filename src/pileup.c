@@ -17,6 +17,9 @@
   TOKEN(PRINT)                                                                 \
   TOKEN(DUMP_STACK)                                                            \
   TOKEN(LINE_END)                                                              \
+  TOKEN(LOOPSTART)                                                             \
+  TOKEN(CURLY_START)                                                           \
+  TOKEN(CURLY_END)                                                             \
   TOKEN(TOKEN_COUNT)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -97,7 +100,15 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = PRINT;
   } else if (strcmp(string, "dumps") == 0) {
     token.type = DUMP_STACK;
-  } else {
+  } else if (strcmp(string, "loop") == 0){
+    token.type = LOOPSTART;
+  } else if (strcmp(string, "{") == 0){
+    token.type = CURLY_START;
+  } else if (strcmp(string, "}") == 0){
+    token.type = CURLY_END;
+    }
+
+  else {
     printf("%s:%d: ERROR: word '%s' not recognized!\n", state->filename, line_number, string);
     exit(-1);
   }
