@@ -111,7 +111,7 @@ void Print_All_Tokens(PileupState state) {
     printf("%s:%d %s: ", state.filename, state.tokens[i].line_number,
            TOKEN_STRING[state.tokens[i].type]);
     if (state.tokens[i].type == PUSH_INT)
-      printf("%d\n", state.tokens[i].value);
+      printf("%d\n", (int)state.tokens[i].value.i);
     else
       printf("\n");
   }
@@ -119,7 +119,7 @@ void Print_All_Tokens(PileupState state) {
 
 void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
-    printf("Stack index %d = %d\n", i, state->stack[i]);
+    printf("Stack index %d = %d\n", i, (int)state->stack[i]);
   }
 }
 
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided");
   }
-  const char *filename = argv[1];
+  char *filename = argv[1];
   FILE *in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
     LOG(ERROR, "input file can't be read");
