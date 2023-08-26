@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[]) {
   if(argc < 2){
-      printf("Please provide a pu file");
+      printf("Please provide a pu file\n");
       exit(-1);
   }
   const char *filename = argv[1];
