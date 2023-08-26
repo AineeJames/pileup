@@ -193,8 +193,9 @@ Loop *Find_Loop(PileupState *state,int end_index){
   return NULL;
 }
 
-void Run_Token(PileupState *state) {
+int8_t Run_Token(PileupState *state) {
   Token cur_token = state->tokens[state->token_index - 1];
+  printf("running token %s\n", TOKEN_STRING[state->tokens[state->token_index-1].type]);
   if (cur_token.type == PUSH_INT) {
     state->stack[state->stack_index] = cur_token.value.i;
     state->stack_index++;
@@ -226,10 +227,16 @@ void Run_Token(PileupState *state) {
   } else if (cur_token.type == DUMP_STACK) {
     Print_Stack(state);
   } else if (cur_token.type == CURLY_END) {
-    Loop* loop = Find_Loop(state,state->stack_index);
-    if(loop != NULL){ state->token_index = loop->start_index;}
-    Run_Token(state);
+    Loop* loop = Find_Loop(state,state->token_index-1);
+    if(loop != NULL){ 
+        printf("found loop\n");
+        state->token_index = loop->start_index+2;
+        while(Run_Token(state)){
+            state->token_index++;
+        }
+    }
   }
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
