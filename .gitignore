@@ -1,2 +1,2 @@
 ./pileup
-./obj
+obj/*
