@@ -1,4 +1,4 @@
-34 35 32 45 656 dumps + dumps print
-34 35 + print
-440 20 - print
-6000 4000 + print
+0
+{
+   1 + dupe print
+}

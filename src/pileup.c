@@ -9,6 +9,8 @@
 
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
+#define LOOP_CAPACITY 1000
+#define MAX_LOOPS 10000
 
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
@@ -17,6 +19,11 @@
   TOKEN(PRINT)                                                                 \
   TOKEN(DUMP_STACK)                                                            \
   TOKEN(LINE_END)                                                              \
+  TOKEN(LOOPSTART)                                                             \
+  TOKEN(CURLY_START)                                                           \
+  TOKEN(CURLY_END)                                                             \
+  TOKEN(DUPE2)                                                             \
+  TOKEN(DUPE)                                                             \
   TOKEN(TOKEN_COUNT)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -37,9 +44,17 @@ typedef struct {
 } Token;
 
 typedef struct {
+  int start_index;
+  int end_index;
+  int loop_count;
+} Loop;
+
+typedef struct {
   int64_t stack[STACK_CAPACITY];
   int stack_index;
   Token tokens[TOKEN_CAPACITY];
+  Loop loops[LOOP_CAPACITY];
+  int loop_index;
   int token_index;
   char filename[100];
 } PileupState;
@@ -50,6 +65,7 @@ PileupState init_state(char *filename) {
   PileupState state;
   state.stack_index = 0;
   state.token_index = 0;
+  state.loop_index = 0;
   strcpy(state.filename, filename);
   return state;
 }
@@ -97,29 +113,76 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = PRINT;
   } else if (strcmp(string, "dumps") == 0) {
     token.type = DUMP_STACK;
-  } else {
-    printf("%s:%d: ERROR: word '%s' not recognized!\n", state->filename, line_number, string);
+  } else if (strcmp(string, "loop") == 0) {
+    token.type = LOOPSTART;
+  } else if (strcmp(string, "{") == 0) {
+    token.type = CURLY_START;
+
+  } else if (strcmp(string, "}") == 0) {
+    token.type = CURLY_END;
+  } else if (strcmp(string, "dupe2") == 0){
+    token.type = DUPE2;
+  } else if (strcmp(string, "dupe") == 0){
+    token.type = DUPE;
+  }
+
+  else {
+    printf("%s:%d: ERROR: word '%s' not recognized!\n", state->filename,
+           line_number, string);
     exit(-1);
   }
   token.line_number = line_number;
   return token;
 }
 
-void Add_Token(PileupState *state, Token token) {
-  state->tokens[state->token_index] = token;
-  state->token_index++;
-}
-
 void Print_All_Tokens(PileupState state) {
   for (int i = 0; i < state.token_index; i++) {
-    printf("%s:%d %s: ", state.filename, state.tokens[i].line_number,
-           TOKEN_STRING[state.tokens[i].type]);
+    printf("%s:%d %s token_index = %d: ", state.filename,
+           state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
     if (state.tokens[i].type == PUSH_INT)
       printf("%d\n", (int)state.tokens[i].value.i);
     else
       printf("\n");
   }
 }
+
+int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
+  printf("creating loop\n");
+  Print_All_Tokens(*state);
+  // check if there is a loop that matches
+  for (int i = 0; i < state->loop_index; i++) {
+    // TODO  this will exploded if curlys on same line
+    if (state->loops[i].start_index == loop_start) {
+      // found a loop that already exists
+      return -1;
+    }
+  }
+  state->loops[state->loop_index].start_index = loop_start;
+  state->loops[state->loop_index].end_index = loop_end;
+  state->loops[state->loop_index].loop_count = 0;
+  state->loop_index++;
+  printf("found loop correctly made starting at %d ending at %d\n", loop_start,
+         loop_end);
+  return 0;
+}
+
+void Add_Token(PileupState *state, Token token) {
+  state->tokens[state->token_index] = token;
+  state->token_index++;
+  if (token.type == CURLY_END) {
+    int loop_end = state->token_index - 1;
+    for (int i = loop_end; i > 0; i--) {
+      if (state->tokens[i].type == CURLY_START){
+        int8_t err = Add_Loop(state, i, loop_end);
+        if(!err){
+            break;
+        }
+      }
+    }
+  }
+}
+
+
 
 void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
@@ -128,9 +191,20 @@ void Print_Stack(PileupState *state) {
   printf("\n");
 }
 
-void Run_Token(PileupState *state) {
+Loop *Find_Loop(PileupState *state,int end_index){
+  for (int i = 0; i < state->loop_index; i++) {
+    // TODO  this will exploded if curlys on same line
+    if (state->loops[i].end_index == end_index) {
+      // found a loop that already exists
+      return &state->loops[i];
+    }
+  }
+  return NULL;
+}
 
+int8_t Run_Token(PileupState *state) {
   Token cur_token = state->tokens[state->token_index - 1];
+  printf("running token %s\n", TOKEN_STRING[state->tokens[state->token_index-1].type]);
   if (cur_token.type == PUSH_INT) {
     state->stack[state->stack_index] = cur_token.value.i;
     state->stack_index++;
@@ -159,7 +233,25 @@ void Run_Token(PileupState *state) {
     printf("%d\n", top_stack_int);
   } else if (cur_token.type == DUMP_STACK) {
     Print_Stack(state);
+  } else if (cur_token.type == CURLY_END) {
+    Loop* loop = Find_Loop(state,state->token_index-1);
+    if(loop != NULL){ 
+        printf("found loop\n");
+        state->token_index = loop->start_index+2;
+        loop->loop_count++;
+        while(Run_Token(state) && loop->loop_count < MAX_LOOPS){
+            state->token_index++;
+        }
+    }
+  } else if (cur_token.type == DUPE2) {
+    state->stack[state->stack_index] = state->stack[state->stack_index-2];
+    state->stack[state->stack_index+1] = state->stack[state->stack_index-1];
+    state->stack_index += 2;
+  } else if (cur_token.type == DUPE) {
+    state->stack[state->stack_index] = state->stack[state->stack_index-1];
+    state->stack_index++;
   }
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
