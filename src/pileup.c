@@ -5,7 +5,7 @@
 
 #define STACK_CAPACITY 4000
 
-typedef enum { PUSH_INT, PLUS, PRINT } TokenType;
+typedef enum { PUSH_INT, PLUS, PRINT, TOKEN_COUNT } TokenType;
 
 typedef union {
   int64_t i;
