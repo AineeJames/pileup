@@ -28,16 +28,17 @@ typedef struct {
   int token_index;
 } PileupState;
 
+void print_usage(const char *prgm);
+
 int main(int argc, char *argv[]) {
-  if (argc < 2)
+  if (argc < 2) {
+    print_usage(argv[0]);
     LOG(ERROR, "no input file provided");
+  }
   const char *filename = argv[1];
   FILE *in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
-  {
-    printf("oops, file can't be read\n");
-    exit(-1);
-  }
+    LOG(ERROR, "input file can't be read");
 
   uint8_t strmax;
   char line[100];
@@ -57,3 +58,5 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+
+void print_usage(const char *prgm) { printf("Usage: %s <input_file>\n", prgm); }
