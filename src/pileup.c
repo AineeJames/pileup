@@ -9,6 +9,7 @@
 
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
+#define LOOP_CAPACITY 1000
 
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
@@ -40,9 +41,16 @@ typedef struct {
 } Token;
 
 typedef struct {
+  int start_index;
+  int end_index;
+} Loop;
+
+typedef struct {
   int64_t stack[STACK_CAPACITY];
   int stack_index;
   Token tokens[TOKEN_CAPACITY];
+  Loop loops[LOOP_CAPACITY];
+  int loop_index;
   int token_index;
   char filename[100];
 } PileupState;
@@ -53,6 +61,7 @@ PileupState init_state(char *filename) {
   PileupState state;
   state.stack_index = 0;
   state.token_index = 0;
+  state.loop_index = 0;
   strcpy(state.filename, filename);
   return state;
 }
@@ -100,31 +109,62 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = PRINT;
   } else if (strcmp(string, "dumps") == 0) {
     token.type = DUMP_STACK;
-  } else if (strcmp(string, "loop") == 0){
+  } else if (strcmp(string, "loop") == 0) {
     token.type = LOOPSTART;
-  } else if (strcmp(string, "{") == 0){
+  } else if (strcmp(string, "{") == 0) {
     token.type = CURLY_START;
-  } else if (strcmp(string, "}") == 0){
+
+  } else if (strcmp(string, "}") == 0) {
     token.type = CURLY_END;
-    }
+  }
 
   else {
-    printf("%s:%d: ERROR: word '%s' not recognized!\n", state->filename, line_number, string);
+    printf("%s:%d: ERROR: word '%s' not recognized!\n", state->filename,
+           line_number, string);
     exit(-1);
   }
   token.line_number = line_number;
   return token;
 }
 
+int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
+  printf("creating loop\n");
+  // check if there is a loop that matches
+  for (int i = 0; i < state->loop_index; i++) {
+    // TODO  this will exploded if curlys on same line
+    if (state->loops[i].start_index == loop_start) {
+      // found a loop that already exists
+      return -1;
+    }
+  }
+  state->loops[state->loop_index].start_index = loop_start;
+  state->loops[state->loop_index].end_index = loop_end;
+  state->loop_index++;
+  printf("found loop correctly made starting at %d ending at %d\n", loop_start,
+         loop_end);
+  return 0;
+}
+
 void Add_Token(PileupState *state, Token token) {
   state->tokens[state->token_index] = token;
+  if (token.type == CURLY_END) {
+    int loop_end = state->token_index;
+    for (int i = loop_end; i > 0; i--) {
+      if (state->tokens[i].type == CURLY_START){
+        int8_t err = Add_Loop(state, i, loop_end);
+        if(!err){
+            break;
+        }
+      }
+    }
+  }
   state->token_index++;
 }
 
 void Print_All_Tokens(PileupState state) {
   for (int i = 0; i < state.token_index; i++) {
-    printf("%s:%d %s: ", state.filename, state.tokens[i].line_number,
-           TOKEN_STRING[state.tokens[i].type]);
+    printf("%s:%d %s token_index = %d: ", state.filename,
+           state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
     if (state.tokens[i].type == PUSH_INT)
       printf("%d\n", (int)state.tokens[i].value.i);
     else
@@ -147,7 +187,8 @@ void Run_Token(PileupState *state) {
     state->stack_index++;
   } else if (cur_token.type == PLUS) {
     // pop off top two nums
-    if(state->stack_index < 1) LOG(ERROR, "Less than two numbers on stack in plus");
+    if (state->stack_index < 1)
+      LOG(ERROR, "Less than two numbers on stack in plus");
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -157,7 +198,8 @@ void Run_Token(PileupState *state) {
   } else if (cur_token.type == MINUS) {
     // pop off top two nums
     // TODO add line number for error
-    if(state->stack_index < 1) LOG(ERROR, "Less than two numbers on stack in minus");
+    if (state->stack_index < 1)
+      LOG(ERROR, "Less than two numbers on stack in minus");
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
