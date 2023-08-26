@@ -2,3 +2,6 @@
 34 35 + print
 440 20 - print
 6000 4000 dupe2 dumps + print
+{
+    20 + dupe2 dumps print
+}

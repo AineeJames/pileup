@@ -10,6 +10,7 @@
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
 #define LOOP_CAPACITY 1000
+#define MAX_LOOPS 10000
 
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
@@ -44,6 +45,7 @@ typedef struct {
 typedef struct {
   int start_index;
   int end_index;
+  int loop_count;
 } Loop;
 
 typedef struct {
@@ -154,6 +156,7 @@ int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
   }
   state->loops[state->loop_index].start_index = loop_start;
   state->loops[state->loop_index].end_index = loop_end;
+  state->loops[state->loop_index].loop_count = 0;
   state->loop_index++;
   printf("found loop correctly made starting at %d ending at %d\n", loop_start,
          loop_end);
@@ -234,8 +237,9 @@ int8_t Run_Token(PileupState *state) {
     if(loop != NULL){ 
         printf("found loop\n");
         state->token_index = loop->start_index+2;
-        while(Run_Token(state)){
+        while(Run_Token(state) && loop->loop_count < MAX_LOOPS){
             state->token_index++;
+            loop->loop_count++;
         }
     }
   } else if (cur_token.type == DUPE2) {
