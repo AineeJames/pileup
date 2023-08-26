@@ -136,7 +136,7 @@ void Run_Token(PileupState *state) {
     state->stack_index++;
   } else if (cur_token.type == PLUS) {
     // pop off top two nums
-    if(state->stack_index < 1) LOG(ERROR, "Less than two numbers on stack in plus");
+    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for plus", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -146,7 +146,7 @@ void Run_Token(PileupState *state) {
   } else if (cur_token.type == MINUS) {
     // pop off top two nums
     // TODO add line number for error
-    if(state->stack_index < 1) LOG(ERROR, "Less than two numbers on stack in minus");
+    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for minus", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -163,14 +163,16 @@ void Run_Token(PileupState *state) {
 }
 
 int main(int argc, char *argv[]) {
+  LOG_LEVEL = DEBUG;
   if (argc < 2) {
     print_usage(argv[0]);
-    LOG(ERROR, "no input file provided");
+    LOG(ERROR, "no input file provided", NULL);
   }
   char *filename = argv[1];
+  LOG(DEBUG, "attempting to open %s", filename);
   FILE *in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
-    LOG(ERROR, "input file can't be read");
+    LOG(ERROR, "input file %s cannot be opened", filename);
   PileupState state = init_state(filename);
 
   uint8_t strmax;
