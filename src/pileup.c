@@ -14,6 +14,7 @@
   TOKEN(PUSH_INT)                                                              \
   TOKEN(PLUS)                                                                  \
   TOKEN(PRINT)                                                                 \
+  TOKEN(DUMP_STACK)                                                            \
   TOKEN(LINE_END)                                                              \
   TOKEN(TOKEN_COUNT)
 
@@ -94,6 +95,9 @@ Token Get_Token(char *string, int line_number){
     else if(strcmp(string,"print") == 0){
         token.type = PRINT;
     }
+    else if(strcmp(string,"dumps") == 0){
+        token.type = DUMP_STACK;
+    }
     else{
       token.type = TOKEN_COUNT;
     }
@@ -122,6 +126,7 @@ void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
     printf("Stack index %d = %d\n", i, state->stack[i]);
   }
+  printf("\n");
 }
 
 void Run_Token(PileupState *state) {
@@ -142,6 +147,8 @@ void Run_Token(PileupState *state) {
     state->stack_index--;
     int top_stack_int = state->stack[state->stack_index];
     printf("%d\n", top_stack_int);
+  }else if(cur_token.type == DUMP_STACK){
+      Print_Stack(state);
   }
 }
 
