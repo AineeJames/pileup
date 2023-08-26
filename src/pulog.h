@@ -3,8 +3,6 @@
 
 typedef enum { DEBUG, WARNING, ERROR } LogLevel;
 
-LogLevel LOG_LEVEL = DEBUG;
-
 void pulog(LogLevel level, const char *msg, const char *file,
            const int line_number, ...);
 
@@ -15,6 +13,8 @@ void pulog(LogLevel level, const char *msg, const char *file,
 #include <stdlib.h>
 
 #define LOG(level, msg, ...) pulog(level, msg, __FILE__, __LINE__, __VA_ARGS__)
+
+LogLevel LOG_LEVEL = DEBUG;
 
 void pulog(LogLevel level, const char *msg, const char *file,
            const int line_number, ...) {
@@ -28,7 +28,6 @@ void pulog(LogLevel level, const char *msg, const char *file,
   } else {
     return;
   }
-
   printf("\033[0m");
 
   printf("%s:%d: ", file, line_number);

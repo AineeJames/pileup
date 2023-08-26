@@ -16,14 +16,15 @@
   TOKEN(PUSH_INT)                                                              \
   TOKEN(PLUS)                                                                  \
   TOKEN(MINUS)                                                                 \
+  TOKEN(EQUAL)                                                                 \
   TOKEN(PRINT)                                                                 \
   TOKEN(DUMP_STACK)                                                            \
   TOKEN(LINE_END)                                                              \
   TOKEN(LOOPSTART)                                                             \
   TOKEN(CURLY_START)                                                           \
   TOKEN(CURLY_END)                                                             \
-  TOKEN(DUPE2)                                                             \
-  TOKEN(DUPE)                                                             \
+  TOKEN(DUPE2)                                                                 \
+  TOKEN(DUPE)                                                                  \
   TOKEN(TOKEN_COUNT)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -109,6 +110,8 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = PLUS;
   } else if (strcmp(string, "-") == 0) {
     token.type = MINUS;
+  } else if (strcmp(string, "=") == 0) {
+    token.type = EQUAL;
   } else if (strcmp(string, "print") == 0) {
     token.type = PRINT;
   } else if (strcmp(string, "dumps") == 0) {
@@ -137,12 +140,12 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
 
 void Print_All_Tokens(PileupState state) {
   for (int i = 0; i < state.token_index; i++) {
-    printf("%s:%d %s token_index = %d: ", state.filename,
+    LOG(DEBUG, "%s:%d token_index %s = %d: ", state.filename,
            state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
-    if (state.tokens[i].type == PUSH_INT)
-      printf("%d\n", (int)state.tokens[i].value.i);
-    else
-      printf("\n");
+    // if (state.tokens[i].type == PUSH_INT)
+    //   printf("%d\n", (int)state.tokens[i].value.i);
+    // else
+    //   printf("\n");
   }
 }
 
@@ -184,9 +187,8 @@ void Add_Token(PileupState *state, Token token) {
 
 void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
-    printf("Stack index %d = %d\n", i, (int)state->stack[i]);
+    LOG(DEBUG, "stack index %d = %d", i, (int)state->stack[i]);
   }
-  printf("\n");
 }
 
 Loop *Find_Loop(PileupState *state,int end_index){
@@ -202,13 +204,13 @@ Loop *Find_Loop(PileupState *state,int end_index){
 
 int8_t Run_Token(PileupState *state) {
   Token cur_token = state->tokens[state->token_index - 1];
-  printf("running token %s\n", TOKEN_STRING[state->tokens[state->token_index-1].type]);
+  LOG(DEBUG, "running token %s", TOKEN_STRING[state->tokens[state->token_index-1].type]);
   if (cur_token.type == PUSH_INT) {
     state->stack[state->stack_index] = cur_token.value.i;
     state->stack_index++;
   } else if (cur_token.type == PLUS) {
     // pop off top two nums
-    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for plus", NULL);
+    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for +", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -218,12 +220,22 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == MINUS) {
     // pop off top two nums
     // TODO add line number for error
-    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for minus", NULL);
+    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for -", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
     int secondnum = state->stack[state->stack_index];
     state->stack[state->stack_index] = secondnum - firstnum;
+    state->stack_index++;
+  } else if (cur_token.type == EQUAL) {
+    // pop off top two nums
+    // TODO add line number for error
+    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for =", NULL);
+    state->stack_index--;
+    int firstnum = state->stack[state->stack_index];
+    state->stack_index--;
+    int secondnum = state->stack[state->stack_index];
+    state->stack[state->stack_index] = secondnum == firstnum ? 1 : 0;
     state->stack_index++;
   } else if (cur_token.type == PRINT) {
     state->stack_index--;
@@ -234,7 +246,7 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == CURLY_END) {
     Loop* loop = Find_Loop(state,state->token_index-1);
     if(loop != NULL){ 
-        printf("found loop\n");
+        LOG(DEBUG, "found loop", NULL);
         state->token_index = loop->start_index+2;
         loop->loop_count++;
         while(Run_Token(state) && loop->loop_count < MAX_LOOPS){
@@ -253,7 +265,7 @@ int8_t Run_Token(PileupState *state) {
 }
 
 int main(int argc, char *argv[]) {
-  LOG_LEVEL = DEBUG;
+  LOG_LEVEL = WARNING;
   if (argc < 2) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
