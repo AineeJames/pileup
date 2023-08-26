@@ -13,6 +13,7 @@
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
   TOKEN(PLUS)                                                                  \
+  TOKEN(MINUS)                                                                 \
   TOKEN(PRINT)                                                                 \
   TOKEN(DUMP_STACK)                                                            \
   TOKEN(LINE_END)                                                              \
@@ -80,30 +81,27 @@ bool is_num(char *string) {
   }
 }
 
-Token Get_Token(char *string, int line_number){
-    // TODO might destroy newline in string literal
-    removeChar(string,'\n');
-    bool is_number = is_num(string);
-    Token token;
-    if (is_number){
-      token.type = PUSH_INT;  
-      token.value.i = atoi(string);
-    }
-    else if(strcmp(string,"+") == 0){
-        token.type = PLUS;
-    }
-    else if(strcmp(string,"print") == 0){
-        token.type = PRINT;
-    }
-    else if(strcmp(string,"dumps") == 0){
-        token.type = DUMP_STACK;
-    }
-    else{
-      token.type = TOKEN_COUNT;
-    }
-    token.line_number = line_number;
-    return token;
-
+Token Get_Token(char *string, int line_number) {
+  // TODO might destroy newline in string literal
+  removeChar(string, '\n');
+  bool is_number = is_num(string);
+  Token token;
+  if (is_number) {
+    token.type = PUSH_INT;
+    token.value.i = atoi(string);
+  } else if (strcmp(string, "+") == 0) {
+    token.type = PLUS;
+  } else if (strcmp(string, "-") == 0) {
+    token.type = MINUS;
+  } else if (strcmp(string, "print") == 0) {
+    token.type = PRINT;
+  } else if (strcmp(string, "dumps") == 0) {
+    token.type = DUMP_STACK;
+  } else {
+    token.type = TOKEN_COUNT;
+  }
+  token.line_number = line_number;
+  return token;
 }
 
 void Add_Token(PileupState *state, Token token) {
@@ -116,7 +114,7 @@ void Print_All_Tokens(PileupState state) {
     printf("%s:%d %s: ", state.filename, state.tokens[i].line_number,
            TOKEN_STRING[state.tokens[i].type]);
     if (state.tokens[i].type == PUSH_INT)
-      printf("%d\n", state.tokens[i].value);
+      printf("%d\n", (int)state.tokens[i].value.i);
     else
       printf("\n");
   }
@@ -124,7 +122,7 @@ void Print_All_Tokens(PileupState state) {
 
 void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
-    printf("Stack index %d = %d\n", i, state->stack[i]);
+    printf("Stack index %d = %d\n", i, (int)state->stack[i]);
   }
   printf("\n");
 }
@@ -143,12 +141,20 @@ void Run_Token(PileupState *state) {
     int secondnum = state->stack[state->stack_index];
     state->stack[state->stack_index] = firstnum + secondnum;
     state->stack_index++;
+  } else if (cur_token.type == MINUS) {
+    // pop off top two nums
+    state->stack_index--;
+    int firstnum = state->stack[state->stack_index];
+    state->stack_index--;
+    int secondnum = state->stack[state->stack_index];
+    state->stack[state->stack_index] = secondnum - firstnum;
+    state->stack_index++;
   } else if (cur_token.type == PRINT) {
     state->stack_index--;
     int top_stack_int = state->stack[state->stack_index];
     printf("%d\n", top_stack_int);
-  }else if(cur_token.type == DUMP_STACK){
-      Print_Stack(state);
+  } else if (cur_token.type == DUMP_STACK) {
+    Print_Stack(state);
   }
 }
 
@@ -157,7 +163,7 @@ int main(int argc, char *argv[]) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided");
   }
-  const char *filename = argv[1];
+  char *filename = argv[1];
   FILE *in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
     LOG(ERROR, "input file can't be read");
