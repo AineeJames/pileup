@@ -135,6 +135,7 @@ void Run_Token(PileupState *state) {
     state->stack_index++;
   } else if (cur_token.type == PLUS) {
     // pop off top two nums
+    if(state->stack_index < 1) LOG(ERROR, "Less than two numbers on stack in plus");
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -143,6 +144,8 @@ void Run_Token(PileupState *state) {
     state->stack_index++;
   } else if (cur_token.type == MINUS) {
     // pop off top two nums
+    // TODO add line number for error
+    if(state->stack_index < 1) LOG(ERROR, "Less than two numbers on stack in minus");
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
