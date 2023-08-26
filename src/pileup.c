@@ -21,6 +21,7 @@
   TOKEN(LOOPSTART)                                                             \
   TOKEN(CURLY_START)                                                           \
   TOKEN(CURLY_END)                                                             \
+  TOKEN(DUPE2)                                                             \
   TOKEN(TOKEN_COUNT)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -116,6 +117,8 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
 
   } else if (strcmp(string, "}") == 0) {
     token.type = CURLY_END;
+  } else if (strcmp(string, "dupe2") == 0){
+    token.type = DUPE2;
   }
 
   else {
@@ -235,6 +238,10 @@ int8_t Run_Token(PileupState *state) {
             state->token_index++;
         }
     }
+  } else if (cur_token.type == DUPE2) {
+    state->stack[state->stack_index] = state->stack[state->stack_index-2];
+    state->stack[state->stack_index+1] = state->stack[state->stack_index-1];
+    state->stack_index += 2;
   }
   return 1;
 }

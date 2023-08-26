@@ -1,7 +1,4 @@
 34 35 32 45 656 dumps + dumps print
 34 35 + print
 440 20 - print
-6000 4000 + print
-loop {
-    20 20 + print
-}
+6000 4000 dupe2 dumps + print
