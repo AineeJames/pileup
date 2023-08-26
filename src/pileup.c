@@ -182,8 +182,6 @@ void Add_Token(PileupState *state, Token token) {
   }
 }
 
-
-
 void Print_Stack(PileupState *state) {
   for (int i = 0; i < state->stack_index; i++) {
     printf("Stack index %d = %d\n", i, (int)state->stack[i]);
