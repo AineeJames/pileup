@@ -18,9 +18,7 @@ void set_loglevel(LogLevel level);
 
 static LogLevel LOG_LEVEL = DEBUG;
 
-void set_loglevel(LogLevel level){
-    LOG_LEVEL = level;
-}
+void set_loglevel(LogLevel level) { LOG_LEVEL = level; }
 
 void pulog(LogLevel level, const char *msg, const char *file,
            const int line_number, ...) {
