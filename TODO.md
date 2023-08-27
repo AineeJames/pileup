@@ -14,6 +14,12 @@ mem 10 + load     // loads mem[10] to top of stack
 while condition {
   // loop contents
 }
+
+// example loop that print from 0 to 99
+0 while dupe 100 < {
+  dupe print
+  1 +
+}
 ```
 
 - If / else:
