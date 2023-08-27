@@ -10,7 +10,7 @@
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
 #define LOOP_CAPACITY 1000
-#define MAX_LOOPS 10000
+#define MAX_LOOPS 5
 
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
@@ -117,7 +117,6 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = LOOPSTART;
   } else if (strcmp(string, "{") == 0) {
     token.type = CURLY_START;
-
   } else if (strcmp(string, "}") == 0) {
     token.type = CURLY_END;
   } else if (strcmp(string, "dupe2") == 0){
@@ -204,7 +203,6 @@ Loop *Find_Loop(PileupState *state,int end_index){
 
 int8_t Run_Token(PileupState *state) {
   Token cur_token = state->tokens[state->token_index - 1];
-  printf("running token %s\n", TOKEN_STRING[state->tokens[state->token_index-1].type]);
   if (cur_token.type == PUSH_INT) {
     state->stack[state->stack_index] = cur_token.value.i;
     state->stack_index++;
@@ -238,10 +236,11 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == CURLY_END) {
     Loop* loop = Find_Loop(state,state->token_index-1);
     if(loop != NULL){ 
-        printf("found loop\n");
+        LOG(INFO,"Found a loop");
         state->token_index = loop->start_index+2;
         loop->loop_count++;
-        while(Run_Token(state) && loop->loop_count < MAX_LOOPS){
+        while(loop->loop_count < MAX_LOOPS){
+            Run_Token(state);
             state->token_index++;
         }
     }
