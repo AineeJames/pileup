@@ -29,10 +29,20 @@ if condition {
 } else {
   //ran if condition == 0
 }
+
+if 10 10 = {
+  69 print
+} else {
+  420 print
+}
 ```
 
 - Functions could look like this:
 ```
+func identifier {
+  // function contents
+}
+
 func print_add {
   + print
 }
