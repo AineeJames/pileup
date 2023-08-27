@@ -1,4 +1,9 @@
 # TODO:
+- Fixes
+```
+Loop is almost certainly messed up
+Adding to token index wayy too much
+```
 
 - Memory:
 ```

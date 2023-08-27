@@ -25,6 +25,7 @@
   TOKEN(CURLY_END)                                                             \
   TOKEN(DUPE2)                                                                 \
   TOKEN(DUPE)                                                                  \
+  TOKEN(BREAK_IF_EQUAL)                                                        \
   TOKEN(TOKEN_COUNT)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -126,6 +127,8 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = DUPE2;
   } else if (strcmp(string, "dupe") == 0){
     token.type = DUPE;
+  } else if (strcmp(string, "breakifeq") == 0){
+    token.type = BREAK_IF_EQUAL;
   }
 
   else {
@@ -163,7 +166,7 @@ int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
   state->loops[state->loop_index].end_index = loop_end;
   state->loops[state->loop_index].loop_count = 0;
   state->loop_index++;
-  printf("found loop correctly made starting at %d ending at %d\n", loop_start,
+  printf("found loop made starting at %d ending at %d\n", loop_start,
          loop_end);
   return 0;
 }
@@ -249,8 +252,12 @@ int8_t Run_Token(PileupState *state) {
         state->token_index = loop->start_index+2;
         loop->loop_count++;
         while(loop->loop_count < MAX_LOOPS){
-            Run_Token(state);
+            int result = Run_Token(state);
             state->token_index++;
+            if(result == 0){
+                state->token_index = loop->end_index+2;
+                break;
+            }
         }
     }
   } else if (cur_token.type == DUPE2) {
@@ -260,12 +267,25 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == DUPE) {
     state->stack[state->stack_index] = state->stack[state->stack_index-1];
     state->stack_index++;
+  } else if(cur_token.type == BREAK_IF_EQUAL){
+    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for break if equal", NULL);
+    state->stack_index--;
+    int firstnum = state->stack[state->stack_index];
+    state->stack_index--;
+    int secondnum = state->stack[state->stack_index];
+    state->stack[state->stack_index] = secondnum == firstnum ? 1 : 0;
+    int eq = state->stack[state->stack_index];
+    state->stack_index++;
+    if (eq){
+        return 0;
+    } 
+     
   }
   return 1;
 }
 
 int main(int argc, char *argv[]) {
-  set_loglevel(WARNING);
+  set_loglevel(DEBUG);
   if (argc < 2) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
