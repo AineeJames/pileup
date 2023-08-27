@@ -18,7 +18,7 @@ while condition {
 
 - If / else:
 ```
-condition if {
+if condition {
   // ran if condition == 1
 } else {
   //ran if condition == 0
