@@ -6,6 +6,10 @@
 #include <string.h>
 #define PULOG_IMPLEMENTATION
 #include "pulog.h"
+#include <raylib.h>
+
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
@@ -70,11 +74,26 @@ void Print_All_Tokens(PileupState state);
 int8_t Add_Loop(PileupState *state, int loop_start, int loop_end);
 void Add_Token(PileupState *state, Token token);
 void Print_Stack(PileupState *state);
-Loop *Find_Loop(PileupState *state,int end_index);
+Loop *Find_Loop(PileupState *state, int end_index);
 int8_t Run_Token(PileupState *state);
 
 int main(int argc, char *argv[]) {
   set_loglevel(WARNING);
+
+  const int screenWidth = 800;
+  const int screenHeight = 450;
+
+  SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
+  InitWindow(screenWidth, screenHeight, "raygui - image exporter");
+
+   ClearBackground(BLANK);
+   while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        BeginDrawing();
+        DrawText("Tell em to bring out the whole ocean",0,0,40,GRAY);
+        EndDrawing();
+    }
+
   if (argc < 2) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
@@ -177,11 +196,11 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
     token.type = CURLY_START;
   } else if (strcmp(string, "}") == 0) {
     token.type = CURLY_END;
-  } else if (strcmp(string, "dupe2") == 0){
+  } else if (strcmp(string, "dupe2") == 0) {
     token.type = DUPE2;
-  } else if (strcmp(string, "dupe") == 0){
+  } else if (strcmp(string, "dupe") == 0) {
     token.type = DUPE;
-  } else if (strcmp(string, "breakifeq") == 0){
+  } else if (strcmp(string, "breakifeq") == 0) {
     token.type = BREAK_IF_EQUAL;
   }
 
@@ -197,7 +216,7 @@ Token Get_Token(PileupState *state, char *string, int line_number) {
 void Print_All_Tokens(PileupState state) {
   for (int i = 0; i < state.token_index; i++) {
     LOG(DEBUG, "%s:%d token_index %s = %d: ", state.filename,
-           state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
+        state.tokens[i].line_number, TOKEN_STRING[state.tokens[i].type], i);
     // if (state.tokens[i].type == PUSH_INT)
     //   printf("%d\n", (int)state.tokens[i].value.i);
     // else
@@ -220,8 +239,7 @@ int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
   state->loops[state->loop_index].end_index = loop_end;
   state->loops[state->loop_index].loop_count = 0;
   state->loop_index++;
-  printf("found loop made starting at %d ending at %d\n", loop_start,
-         loop_end);
+  printf("found loop made starting at %d ending at %d\n", loop_start, loop_end);
   return 0;
 }
 
@@ -231,10 +249,10 @@ void Add_Token(PileupState *state, Token token) {
   if (token.type == CURLY_END) {
     int loop_end = state->token_index - 1;
     for (int i = loop_end; i > 0; i--) {
-      if (state->tokens[i].type == CURLY_START){
+      if (state->tokens[i].type == CURLY_START) {
         int8_t err = Add_Loop(state, i, loop_end);
-        if(!err){
-            break;
+        if (!err) {
+          break;
         }
       }
     }
@@ -247,7 +265,7 @@ void Print_Stack(PileupState *state) {
   }
 }
 
-Loop *Find_Loop(PileupState *state,int end_index){
+Loop *Find_Loop(PileupState *state, int end_index) {
   for (int i = 0; i < state->loop_index; i++) {
     // TODO  this will exploded if curlys on same line
     if (state->loops[i].end_index == end_index) {
@@ -260,13 +278,15 @@ Loop *Find_Loop(PileupState *state,int end_index){
 
 int8_t Run_Token(PileupState *state) {
   Token cur_token = state->tokens[state->token_index - 1];
-  LOG(DEBUG, "running token %s", TOKEN_STRING[state->tokens[state->token_index-1].type]);
+  LOG(DEBUG, "running token %s",
+      TOKEN_STRING[state->tokens[state->token_index - 1].type]);
   if (cur_token.type == PUSH_INT) {
     state->stack[state->stack_index] = cur_token.value.i;
     state->stack_index++;
   } else if (cur_token.type == PLUS) {
     // pop off top two nums
-    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for +", NULL);
+    if (state->stack_index < 1)
+      LOG(ERROR, "less than two numbers on stack for +", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -276,7 +296,8 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == MINUS) {
     // pop off top two nums
     // TODO add line number for error
-    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for -", NULL);
+    if (state->stack_index < 1)
+      LOG(ERROR, "less than two numbers on stack for -", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -286,7 +307,8 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == EQUAL) {
     // pop off top two nums
     // TODO add line number for error
-    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for =", NULL);
+    if (state->stack_index < 1)
+      LOG(ERROR, "less than two numbers on stack for =", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
@@ -300,40 +322,41 @@ int8_t Run_Token(PileupState *state) {
   } else if (cur_token.type == DUMP_STACK) {
     Print_Stack(state);
   } else if (cur_token.type == CURLY_END) {
-    Loop* loop = Find_Loop(state,state->token_index-1);
-    if(loop != NULL){ 
-        LOG(DEBUG, "found loop", NULL);
-        state->token_index = loop->start_index+2;
-        loop->loop_count++;
-        while(loop->loop_count < MAX_LOOPS && state->tokens[state->token_index - 1].type != CURLY_END){
-            int result = Run_Token(state);
-            state->token_index++;
-            if(result == 0){
-                // if loop was broken
-                state->token_index = loop->end_index+2;
-                break;
-            }
+    Loop *loop = Find_Loop(state, state->token_index - 1);
+    if (loop != NULL) {
+      LOG(DEBUG, "found loop", NULL);
+      state->token_index = loop->start_index + 2;
+      loop->loop_count++;
+      while (loop->loop_count < MAX_LOOPS &&
+             state->tokens[state->token_index - 1].type != CURLY_END) {
+        int result = Run_Token(state);
+        state->token_index++;
+        if (result == 0) {
+          // if loop was broken
+          state->token_index = loop->end_index + 2;
+          break;
         }
-        Run_Token(state);
+      }
+      Run_Token(state);
     }
   } else if (cur_token.type == DUPE2) {
-    state->stack[state->stack_index] = state->stack[state->stack_index-2];
-    state->stack[state->stack_index+1] = state->stack[state->stack_index-1];
+    state->stack[state->stack_index] = state->stack[state->stack_index - 2];
+    state->stack[state->stack_index + 1] = state->stack[state->stack_index - 1];
     state->stack_index += 2;
   } else if (cur_token.type == DUPE) {
-    state->stack[state->stack_index] = state->stack[state->stack_index-1];
+    state->stack[state->stack_index] = state->stack[state->stack_index - 1];
     state->stack_index++;
-  } else if(cur_token.type == BREAK_IF_EQUAL){
-    if(state->stack_index < 1) LOG(ERROR, "less than two numbers on stack for break if equal", NULL);
+  } else if (cur_token.type == BREAK_IF_EQUAL) {
+    if (state->stack_index < 1)
+      LOG(ERROR, "less than two numbers on stack for break if equal", NULL);
     state->stack_index--;
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
     int secondnum = state->stack[state->stack_index];
     int eq = secondnum == firstnum ? 1 : 0;
-    if (eq){
-        return 0;
-    } 
-     
+    if (eq) {
+      return 0;
+    }
   }
   return 1;
 }
