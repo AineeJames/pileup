@@ -1,4 +1,4 @@
 0
 {
-   2 + dupe dumps print
+   2 + dupe dupe print dupe 100 breakifeq
 }
