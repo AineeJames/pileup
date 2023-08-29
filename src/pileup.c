@@ -4,12 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define PULOG_IMPLEMENTATION
 #include "pulog.h"
-#include <raylib.h>
 
+#include <raylib.h>
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
+#define LAYOUT
+#include "layout.h"
 
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
@@ -84,13 +87,14 @@ int main(int argc, char *argv[]) {
   const int screenHeight = 450;
 
   SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
-  InitWindow(screenWidth, screenHeight, "raygui - image exporter");
-
-   ClearBackground(BLANK);
+  InitWindow(screenWidth, screenHeight, "pileup debugger");
+  GuiLayoutNameState debugger_state = InitGuiLayoutName();
    while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         BeginDrawing();
-        DrawText("Tell em to bring out the whole ocean",0,0,40,GRAY);
+        // DrawText("Tell em to bring out the whole ocean",0,0,40,GRAY);
+        ClearBackground((Color) {0,0,0,230});
+        GuiLayoutName(&debugger_state);
         EndDrawing();
     }
 
