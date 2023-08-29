@@ -68,6 +68,10 @@ typedef struct {
   char filename[100];
 } PileupState;
 
+typedef struct {
+  bool debug;
+} Flags;
+
 void print_usage(const char *prgm);
 PileupState init_state(char *filename);
 void removeChar(char *str, char c);
@@ -83,26 +87,42 @@ int8_t Run_Token(PileupState *state);
 int main(int argc, char *argv[]) {
   set_loglevel(WARNING);
 
-  const int screenWidth = 800;
-  const int screenHeight = 450;
+  // const int screenWidth = 800;
+  // const int screenHeight = 450;
+  //
+  // SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
+  // InitWindow(screenWidth, screenHeight, "pileup debugger");
+  // GuiLayoutNameState debugger_state = InitGuiLayoutName();
+  // while (!WindowShouldClose())    // Detect window close button or ESC key
+  // {
+  //   BeginDrawing();
+  //   ClearBackground((Color) {0,0,0,230});
+  //   GuiLayoutName(&debugger_state);
+  //   EndDrawing();
+  // }
 
-  SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
-  InitWindow(screenWidth, screenHeight, "pileup debugger");
-  GuiLayoutNameState debugger_state = InitGuiLayoutName();
-   while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        BeginDrawing();
-        // DrawText("Tell em to bring out the whole ocean",0,0,40,GRAY);
-        ClearBackground((Color) {0,0,0,230});
-        GuiLayoutName(&debugger_state);
-        EndDrawing();
+  Flags flags = {0};
+  char *filename = NULL;
+  for (int i = 1; i < argc; i++) {
+    if (argv[i][0] != '-') {
+      filename = argv[i];
+      continue;
     }
-
-  if (argc < 2) {
+    if (strcmp(argv[i], "-d") == 0) {
+       flags.debug = true;
+    } else if (strcmp(argv[i], "-llDEBUG") == 0) {
+       set_loglevel(DEBUG);
+    } else if (strcmp(argv[i], "-llWARNING") == 0) {
+       set_loglevel(WARNING);
+    } else if (strcmp(argv[i], "-llERROR") == 0) {
+       set_loglevel(ERROR);
+    }
+  }
+  if (filename == NULL) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
   }
-  char *filename = argv[1];
+  if (flags.debug) LOG(DEBUG, "using debugger", NULL);
   LOG(DEBUG, "attempting to open %s", filename);
   FILE *in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
