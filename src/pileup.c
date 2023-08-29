@@ -118,12 +118,30 @@ int main(int argc, char *argv[]) {
     LOG(ERROR, "input file %s cannot be opened", filename);
 
   if (flags.debug) { 
+    // Calculate the size of the file
+    fseek(in_file, 0, SEEK_END);
+    long file_size = ftell(in_file);
+    fseek(in_file, 0, SEEK_SET);
+
+    // Allocate memory to store the file contents
+    char *file_contents = (char *)malloc(file_size + 1);
+    if (file_contents == NULL) {
+        LOG(ERROR, "memory allocation error", NULL);
+        fclose(in_file);
+        return 1;
+    }
+
+    // Read the file contents into the allocated buffer
+    fread(file_contents, 1, file_size, in_file);
+    file_contents[file_size] = '\0'; // Add a null terminator
+
     const int screenWidth = 800;
     const int screenHeight = 450;
 
     SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
     InitWindow(screenWidth, screenHeight, "pileup debugger");
     GuiLayoutNameState debugger_state = InitGuiLayoutName();
+    strcpy(debugger_state.CodeViewText, file_contents);
 
     while (!WindowShouldClose()) {
       BeginDrawing();
@@ -131,6 +149,8 @@ int main(int argc, char *argv[]) {
       GuiLayoutName(&debugger_state);
       EndDrawing();
     }
+
+    fclose(in_file);
 
   }
   
