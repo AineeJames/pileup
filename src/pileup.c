@@ -10,7 +10,7 @@
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
 #define LOOP_CAPACITY 1000
-#define MAX_LOOPS 10
+#define MAX_LOOPS 1000
 
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
@@ -74,7 +74,7 @@ Loop *Find_Loop(PileupState *state,int end_index);
 int8_t Run_Token(PileupState *state);
 
 int main(int argc, char *argv[]) {
-  set_loglevel(DEBUG);
+  set_loglevel(WARNING);
   if (argc < 2) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
@@ -329,9 +329,7 @@ int8_t Run_Token(PileupState *state) {
     int firstnum = state->stack[state->stack_index];
     state->stack_index--;
     int secondnum = state->stack[state->stack_index];
-    state->stack[state->stack_index] = secondnum == firstnum ? 1 : 0;
-    int eq = state->stack[state->stack_index];
-    state->stack_index++;
+    int eq = secondnum == firstnum ? 1 : 0;
     if (eq){
         return 0;
     } 
