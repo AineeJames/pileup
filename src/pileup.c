@@ -74,7 +74,7 @@ Loop *Find_Loop(PileupState *state,int end_index);
 int8_t Run_Token(PileupState *state);
 
 int main(int argc, char *argv[]) {
-  set_loglevel(DEBUG);
+  set_loglevel(WARNING);
   if (argc < 2) {
     print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
@@ -206,7 +206,7 @@ void Print_All_Tokens(PileupState state) {
 }
 
 int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
-  printf("creating loop\n");
+  LOG(DEBUG, "creating loop", NULL);
   Print_All_Tokens(*state);
   // check if there is a loop that matches
   for (int i = 0; i < state->loop_index; i++) {
@@ -220,7 +220,7 @@ int8_t Add_Loop(PileupState *state, int loop_start, int loop_end) {
   state->loops[state->loop_index].end_index = loop_end;
   state->loops[state->loop_index].loop_count = 0;
   state->loop_index++;
-  printf("found loop made starting at %d ending at %d\n", loop_start,
+  LOG(DEBUG, "found loop made starting at %d ending at %d", loop_start,
          loop_end);
   return 0;
 }
