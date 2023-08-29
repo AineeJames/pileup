@@ -62,6 +62,60 @@ typedef struct {
 } PileupState;
 
 void print_usage(const char *prgm);
+PileupState init_state(char *filename);
+void removeChar(char *str, char c);
+bool is_num(char *string);
+Token Get_Token(PileupState *state, char *string, int line_number);
+void Print_All_Tokens(PileupState state);
+int8_t Add_Loop(PileupState *state, int loop_start, int loop_end);
+void Add_Token(PileupState *state, Token token);
+void Print_Stack(PileupState *state);
+Loop *Find_Loop(PileupState *state,int end_index);
+int8_t Run_Token(PileupState *state);
+
+int main(int argc, char *argv[]) {
+  set_loglevel(DEBUG);
+  if (argc < 2) {
+    print_usage(argv[0]);
+    LOG(ERROR, "no input file provided", NULL);
+  }
+  char *filename = argv[1];
+  LOG(DEBUG, "attempting to open %s", filename);
+  FILE *in_file = fopen(filename, "r"); // read only
+  if (!in_file) // equivalent to saying if ( in_file == NULL )
+    LOG(ERROR, "input file %s cannot be opened", filename);
+  PileupState state = init_state(filename);
+
+  uint8_t strmax;
+  char line[100];
+  int line_no = 0;
+  char *next_token;
+  char *token;
+  const char *delim = " ";
+  Token cur_token;
+  while (fgets(line, 100, in_file) != NULL) {
+    token = strtok_r(line, delim, &next_token);
+    cur_token = Get_Token(&state, token, line_no);
+    Add_Token(&state, cur_token);
+    Run_Token(&state);
+    while (token) {
+      token = strtok_r(NULL, delim, &next_token);
+      if (token == NULL) {
+        break;
+      }
+      cur_token = Get_Token(&state, token, line_no);
+      Add_Token(&state, cur_token);
+      Run_Token(&state);
+    }
+    line_no++;
+  }
+  Print_All_Tokens(state);
+  Print_Stack(&state);
+
+  return 0;
+}
+
+void print_usage(const char *prgm) { printf("Usage: %s <input_file>\n", prgm); }
 
 PileupState init_state(char *filename) {
   PileupState state;
@@ -285,47 +339,3 @@ int8_t Run_Token(PileupState *state) {
   }
   return 1;
 }
-
-int main(int argc, char *argv[]) {
-  set_loglevel(DEBUG);
-  if (argc < 2) {
-    print_usage(argv[0]);
-    LOG(ERROR, "no input file provided", NULL);
-  }
-  char *filename = argv[1];
-  LOG(DEBUG, "attempting to open %s", filename);
-  FILE *in_file = fopen(filename, "r"); // read only
-  if (!in_file) // equivalent to saying if ( in_file == NULL )
-    LOG(ERROR, "input file %s cannot be opened", filename);
-  PileupState state = init_state(filename);
-
-  uint8_t strmax;
-  char line[100];
-  int line_no = 0;
-  char *next_token;
-  char *token;
-  const char *delim = " ";
-  Token cur_token;
-  while (fgets(line, 100, in_file) != NULL) {
-    token = strtok_r(line, delim, &next_token);
-    cur_token = Get_Token(&state, token, line_no);
-    Add_Token(&state, cur_token);
-    Run_Token(&state);
-    while (token) {
-      token = strtok_r(NULL, delim, &next_token);
-      if (token == NULL) {
-        break;
-      }
-      cur_token = Get_Token(&state, token, line_no);
-      Add_Token(&state, cur_token);
-      Run_Token(&state);
-    }
-    line_no++;
-  }
-  Print_All_Tokens(state);
-  Print_Stack(&state);
-
-  return 0;
-}
-
-void print_usage(const char *prgm) { printf("Usage: %s <input_file>\n", prgm); }
