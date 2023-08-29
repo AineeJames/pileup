@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     {
         BeginDrawing();
         // DrawText("Tell em to bring out the whole ocean",0,0,40,GRAY);
-        ClearBackground((Color) {0,0,0,230});
+        ClearBackground((Color) {27, 83, 89,200});
         GuiLayoutName(&debugger_state);
         EndDrawing();
     }
