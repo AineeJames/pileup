@@ -154,6 +154,10 @@ int main(int argc, char *argv[]) {
 
   }
   
+  in_file = fopen(filename, "r"); // read only
+  if (!in_file) // equivalent to saying if ( in_file == NULL )
+    LOG(ERROR, "input file %s cannot be opened", filename);
+
   PileupState state = init_state(filename);
 
   uint8_t strmax;
