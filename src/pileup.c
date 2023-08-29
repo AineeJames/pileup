@@ -10,7 +10,7 @@
 #define STACK_CAPACITY 4000
 #define TOKEN_CAPACITY 100000
 #define LOOP_CAPACITY 1000
-#define MAX_LOOPS 10000
+#define MAX_LOOPS 10
 
 #define FOREACH_TOKEN(TOKEN)                                                   \
   TOKEN(PUSH_INT)                                                              \
@@ -251,14 +251,16 @@ int8_t Run_Token(PileupState *state) {
         LOG(DEBUG, "found loop", NULL);
         state->token_index = loop->start_index+2;
         loop->loop_count++;
-        while(loop->loop_count < MAX_LOOPS){
+        while(loop->loop_count < MAX_LOOPS && state->tokens[state->token_index - 1].type != CURLY_END){
             int result = Run_Token(state);
             state->token_index++;
             if(result == 0){
+                // if loop was broken
                 state->token_index = loop->end_index+2;
                 break;
             }
         }
+        Run_Token(state);
     }
   } else if (cur_token.type == DUPE2) {
     state->stack[state->stack_index] = state->stack[state->stack_index-2];
