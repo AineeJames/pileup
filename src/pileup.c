@@ -87,19 +87,6 @@ int8_t Run_Token(PileupState *state);
 int main(int argc, char *argv[]) {
   set_loglevel(WARNING);
 
-  // const int screenWidth = 800;
-  // const int screenHeight = 450;
-  //
-  // SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
-  // InitWindow(screenWidth, screenHeight, "pileup debugger");
-  // GuiLayoutNameState debugger_state = InitGuiLayoutName();
-  // while (!WindowShouldClose())    // Detect window close button or ESC key
-  // {
-  //   BeginDrawing();
-  //   ClearBackground((Color) {0,0,0,230});
-  //   GuiLayoutName(&debugger_state);
-  //   EndDrawing();
-  // }
 
   Flags flags = {0};
   char *filename = NULL;
@@ -116,6 +103,8 @@ int main(int argc, char *argv[]) {
        set_loglevel(WARNING);
     } else if (strcmp(argv[i], "-llERROR") == 0) {
        set_loglevel(ERROR);
+    } else {
+      LOG(ERROR, "flag %s does not exist", argv[i]);
     }
   }
   if (filename == NULL) {
@@ -127,6 +116,24 @@ int main(int argc, char *argv[]) {
   FILE *in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
     LOG(ERROR, "input file %s cannot be opened", filename);
+
+  if (flags.debug) { 
+    const int screenWidth = 800;
+    const int screenHeight = 450;
+
+    SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
+    InitWindow(screenWidth, screenHeight, "pileup debugger");
+    GuiLayoutNameState debugger_state = InitGuiLayoutName();
+
+    while (!WindowShouldClose()) {
+      BeginDrawing();
+      ClearBackground((Color) {0,0,0,230});
+      GuiLayoutName(&debugger_state);
+      EndDrawing();
+    }
+
+  }
+  
   PileupState state = init_state(filename);
 
   uint8_t strmax;
@@ -158,7 +165,17 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void print_usage(const char *prgm) { printf("Usage: %s <input_file>\n", prgm); }
+void print_usage(const char *prgm) { 
+  char *use = "\
+usage: pileup [-d] [-llDEBUG, -llWARNING, -llERROR] filepath \n\n \
+Run a pileup program. \n\n \
+positional arguments: \n \
+  filepath           the path to you program \n\n \
+options: \n \
+  -d          run the cool raylib debugger \n \
+  -llXXXXX    set the logging level \n";
+  printf("%s", use);
+}
 
 PileupState init_state(char *filename) {
   PileupState state;
