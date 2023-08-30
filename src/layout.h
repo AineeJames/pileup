@@ -41,24 +41,11 @@ typedef struct {
 
   Rectangle layoutRecs[6];
 
-  // Custom state variables (depend on development software)
-  // NOTE: This variables should be added manually if required
-
 } GuiLayoutNameState;
 
 #ifdef __cplusplus
 extern "C" { // Prevents name mangling of functions
 #endif
-
-//----------------------------------------------------------------------------------
-// Defines and Macros
-//----------------------------------------------------------------------------------
-//...
-
-//----------------------------------------------------------------------------------
-// Types and Structures Definition
-//----------------------------------------------------------------------------------
-// ...
 
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
@@ -78,19 +65,10 @@ static void StepButton();
  *   GUI_LAYOUT_NAME IMPLEMENTATION
  *
  ************************************************************************************/
+#define LAYOUT
 #if defined(LAYOUT)
 
 #include "raygui.h"
-
-//----------------------------------------------------------------------------------
-// Global Variables Definition
-//----------------------------------------------------------------------------------
-//...
-
-//----------------------------------------------------------------------------------
-// Internal Module Functions Definition
-//----------------------------------------------------------------------------------
-//...
 
 //----------------------------------------------------------------------------------
 // Module Functions Definition
@@ -105,18 +83,28 @@ GuiLayoutNameState InitGuiLayoutName(void) {
   state.CodeViewEditMode = false;
   strcpy(state.CodeViewText, "0\n{\n  1 + dupe print dupe 10 breakifeq\n}");
 
-  state.layoutRecs[0] =
-      (Rectangle){state.anchor01.x + 0, state.anchor01.y + 0, 144, 264};
+  int pad = 8;
+  float fourth = 0.25 * GetScreenWidth();
+  float height = GetScreenHeight();
+  float innerrect_height = height - (4 * pad);
+  float outerrect_height = height - (2 * pad);
+  state.layoutRecs[0] = (Rectangle){state.anchor01.x + 0, state.anchor01.y + 0,
+                                    fourth - pad, outerrect_height};
   state.layoutRecs[1] =
-      (Rectangle){state.anchor01.x + 8, state.anchor01.y + 8, 128, 24};
+      (Rectangle){state.anchor01.x + pad, state.anchor01.y + pad,
+                  fourth - (3 * pad), innerrect_height};
   state.layoutRecs[2] =
-      (Rectangle){state.anchor01.x + 152, state.anchor01.y + 0, 144, 264};
+      (Rectangle){state.anchor01.x + fourth, state.anchor01.y + 0, fourth - pad,
+                  outerrect_height};
   state.layoutRecs[3] =
-      (Rectangle){state.anchor01.x + 160, state.anchor01.y + 8, 128, 248};
+      (Rectangle){state.anchor01.x + fourth + pad, state.anchor01.y + pad,
+                  fourth - (3 * pad), innerrect_height};
   state.layoutRecs[4] =
-      (Rectangle){state.anchor01.x + 304, state.anchor01.y + 0, 240, 264};
+      (Rectangle){state.anchor01.x + 2 * fourth, state.anchor01.y + 0,
+                  2 * fourth - (2 * pad), outerrect_height};
   state.layoutRecs[5] =
-      (Rectangle){state.anchor01.x + 312, state.anchor01.y + 8, 224, 248};
+      (Rectangle){state.anchor01.x + 2 * fourth + pad, state.anchor01.y + pad,
+                  2 * fourth - (4 * pad), innerrect_height};
 
   // Custom variables initialization
 
