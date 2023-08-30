@@ -53,6 +53,7 @@ extern "C" { // Prevents name mangling of functions
 GuiLayoutNameState InitGuiLayoutName(void);
 void GuiLayoutName(GuiLayoutNameState *state);
 static void StepButton();
+void set_boxes(GuiLayoutNameState *state);
 
 #ifdef __cplusplus
 }
@@ -70,6 +71,32 @@ static void StepButton();
 
 #include "raygui.h"
 
+void set_boxes(GuiLayoutNameState *state) {
+  int pad = 8;
+  float fourth = 0.25 * GetScreenWidth();
+  float height = GetScreenHeight();
+  float innerrect_height = height - (4 * pad);
+  float outerrect_height = height - (2 * pad);
+  state->layoutRecs[0] =
+      (Rectangle){state->anchor01.x + 0, state->anchor01.y + 0, fourth - pad,
+                  outerrect_height};
+  state->layoutRecs[1] =
+      (Rectangle){state->anchor01.x + pad, state->anchor01.y + pad,
+                  fourth - (3 * pad), innerrect_height};
+  state->layoutRecs[2] =
+      (Rectangle){state->anchor01.x + fourth, state->anchor01.y + 0,
+                  fourth - pad, outerrect_height};
+  state->layoutRecs[3] =
+      (Rectangle){state->anchor01.x + fourth + pad, state->anchor01.y + pad,
+                  fourth - (3 * pad), innerrect_height};
+  state->layoutRecs[4] =
+      (Rectangle){state->anchor01.x + 2 * fourth, state->anchor01.y + 0,
+                  2 * fourth - (2 * pad), outerrect_height};
+  state->layoutRecs[5] =
+      (Rectangle){state->anchor01.x + 2 * fourth + pad, state->anchor01.y + pad,
+                  2 * fourth - (4 * pad), innerrect_height};
+}
+
 //----------------------------------------------------------------------------------
 // Module Functions Definition
 //----------------------------------------------------------------------------------
@@ -83,28 +110,7 @@ GuiLayoutNameState InitGuiLayoutName(void) {
   state.CodeViewEditMode = false;
   strcpy(state.CodeViewText, "0\n{\n  1 + dupe print dupe 10 breakifeq\n}");
 
-  int pad = 8;
-  float fourth = 0.25 * GetScreenWidth();
-  float height = GetScreenHeight();
-  float innerrect_height = height - (4 * pad);
-  float outerrect_height = height - (2 * pad);
-  state.layoutRecs[0] = (Rectangle){state.anchor01.x + 0, state.anchor01.y + 0,
-                                    fourth - pad, outerrect_height};
-  state.layoutRecs[1] =
-      (Rectangle){state.anchor01.x + pad, state.anchor01.y + pad,
-                  fourth - (3 * pad), innerrect_height};
-  state.layoutRecs[2] =
-      (Rectangle){state.anchor01.x + fourth, state.anchor01.y + 0, fourth - pad,
-                  outerrect_height};
-  state.layoutRecs[3] =
-      (Rectangle){state.anchor01.x + fourth + pad, state.anchor01.y + pad,
-                  fourth - (3 * pad), innerrect_height};
-  state.layoutRecs[4] =
-      (Rectangle){state.anchor01.x + 2 * fourth, state.anchor01.y + 0,
-                  2 * fourth - (2 * pad), outerrect_height};
-  state.layoutRecs[5] =
-      (Rectangle){state.anchor01.x + 2 * fourth + pad, state.anchor01.y + pad,
-                  2 * fourth - (4 * pad), innerrect_height};
+  set_boxes(&state);
 
   // Custom variables initialization
 

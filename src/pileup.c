@@ -139,11 +139,13 @@ int main(int argc, char *argv[]) {
     const int screenHeight = 450;
 
     SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "pileup debugger");
     GuiLayoutNameState debugger_state = InitGuiLayoutName();
     strcpy(debugger_state.CodeViewText, file_contents);
 
     while (!WindowShouldClose()) {
+      if (IsWindowResized()) set_boxes(&debugger_state);
       BeginDrawing();
       ClearBackground((Color) {0,0,0,230});
       GuiLayoutName(&debugger_state);
