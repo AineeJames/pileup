@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
       filename = argv[i];
       continue;
     }
-    if (strcmp(argv[i], "-d") == 0) {
+    if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--debugger") == 0) {
        flags.debug = true;
     } else if (strcmp(argv[i], "-llDEBUG") == 0) {
        set_loglevel(DEBUG);
@@ -103,12 +103,14 @@ int main(int argc, char *argv[]) {
        set_loglevel(WARNING);
     } else if (strcmp(argv[i], "-llERROR") == 0) {
        set_loglevel(ERROR);
+    } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+       print_usage(argv[0]);
+       exit(-1);
     } else {
       LOG(ERROR, "flag %s does not exist", argv[i]);
     }
   }
   if (filename == NULL) {
-    print_usage(argv[0]);
     LOG(ERROR, "no input file provided", NULL);
   }
   if (flags.debug) LOG(DEBUG, "using debugger", NULL);
@@ -193,13 +195,14 @@ int main(int argc, char *argv[]) {
 
 void print_usage(const char *prgm) { 
   char *use = "\
-usage: pileup [-d] [-llDEBUG, -llWARNING, -llERROR] filepath \n\n \
+usage: pileup [-h] [-d] [-llDEBUG, -llWARNING, -llERROR] filepath \n\n \
 Run a pileup program. \n\n \
 positional arguments: \n \
   filepath           the path to you program \n\n \
 options: \n \
-  -d          run the cool raylib debugger \n \
-  -llXXXXX    set the logging level \n";
+  -h, --help         display this message \n \
+  -d, --debugger     run the cool raylib debugger \n \
+  -llXXXXX           set the logging level \n";
   printf("%s", use);
 }
 
