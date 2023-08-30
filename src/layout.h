@@ -19,6 +19,7 @@
  *
  **********************************************************************************************/
 
+#include "pulog.h"
 #include "raylib.h"
 
 // WARNING: raygui implementation is expected to be defined before including
@@ -41,6 +42,8 @@ typedef struct {
 
   Rectangle layoutRecs[6];
 
+  bool StepButtonPressed;
+
 } GuiLayoutNameState;
 
 #ifdef __cplusplus
@@ -51,8 +54,8 @@ extern "C" { // Prevents name mangling of functions
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
 GuiLayoutNameState InitGuiLayoutName(void);
+static void StepButton(GuiLayoutNameState *state);
 void GuiLayoutName(GuiLayoutNameState *state);
-static void StepButton();
 void set_boxes(GuiLayoutNameState *state);
 
 #ifdef __cplusplus
@@ -66,7 +69,7 @@ void set_boxes(GuiLayoutNameState *state);
  *   GUI_LAYOUT_NAME IMPLEMENTATION
  *
  ************************************************************************************/
-#define LAYOUT
+// #define LAYOUT
 #if defined(LAYOUT)
 
 #include "raygui.h"
@@ -116,8 +119,9 @@ GuiLayoutNameState InitGuiLayoutName(void) {
 
   return state;
 }
-static void StepButton() {
-  // TODO: Implement control logic
+
+static void StepButton(GuiLayoutNameState *state) {
+  state->StepButtonPressed = true;
 }
 
 void GuiLayoutName(GuiLayoutNameState *state) {
@@ -128,7 +132,7 @@ void GuiLayoutName(GuiLayoutNameState *state) {
 
   GuiGroupBox(state->layoutRecs[0], ControlsBoxText);
   if (GuiButton(state->layoutRecs[1], StepButtonText))
-    StepButton();
+    StepButton(state);
   GuiGroupBox(state->layoutRecs[2], StackContentsBoxText);
   if (GuiTextBox(state->layoutRecs[3], state->StackContentsText, 128,
                  state->StackContentsEditMode))

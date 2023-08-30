@@ -148,6 +148,11 @@ int main(int argc, char *argv[]) {
 
     while (!WindowShouldClose()) {
       if (IsWindowResized()) set_boxes(&debugger_state);
+      if (debugger_state.StepButtonPressed) {
+        // advance step
+        LOG(DEBUG, "step button pressed", NULL);
+        debugger_state.StepButtonPressed = false;
+      }
       BeginDrawing();
       ClearBackground((Color) {0,0,0,230});
       GuiLayoutName(&debugger_state);
@@ -157,6 +162,7 @@ int main(int argc, char *argv[]) {
     fclose(in_file);
 
   }
+  CloseWindow();
   
   in_file = fopen(filename, "r"); // read only
   if (!in_file) // equivalent to saying if ( in_file == NULL )
